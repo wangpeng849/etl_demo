@@ -1,0 +1,31 @@
+{
+	"extracts":[
+		{	
+			"extractId":"e_id",
+			"datasource":{
+				"url":"jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+				"driverClassName":"com.mysql.cj.jdbc.Driver",
+				"username":"root",
+				"password":"root",
+				"table":"bend_info",
+				"fileds":[
+					"bend_id",
+					"bend_info_bending_len"
+				]
+			}
+		}
+	],
+	"transfers":[
+		{
+			"stepId":"s_id",
+			"extractId":"",
+			"action":"sum",
+		}
+	],
+	"loads":[
+		{
+			"":"",
+			"loadId":"load_id"
+		}
+	]
+}
