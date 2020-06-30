@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Data
 public class ETL {
-    private List<Extract> extract;
+    private List<Extract> extracts;
     private List<Transfers> transfers;
     private List<Loads> loads;
 }

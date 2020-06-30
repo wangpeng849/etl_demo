@@ -15,7 +15,7 @@ import java.io.IOException;
 public class ETLDemo {
     @Test
     public void readJsonToObject() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("E:\\jaxb\\etl.js"));
+        BufferedReader br = new BufferedReader(new FileReader(".\\etl.js"));
         StringBuffer sb = new StringBuffer();
         String line = "";
         while(null != (line = br.readLine())){
