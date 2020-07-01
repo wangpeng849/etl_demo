@@ -4,10 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.etl_demo.json.ETL;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @Author wangp
@@ -16,20 +15,51 @@ import java.io.IOException;
  */
 public class JsonUtils {
 
-    public static Object jsonTobObject(String filePath,Class clazz){
+    public static Object jsonTobObject(String filePath, Class clazz) {
+        return JSONObject.toJavaObject((JSON) JSONObject.parse(convertFileToStr(filePath)), clazz);
+    }
+
+    public static String convertFileToStr(String filePath) {
         BufferedReader br = null;
-        Object obj = null;
+        StringBuffer sb = null;
         try {
             br = new BufferedReader(new FileReader(filePath));
-            StringBuffer sb = new StringBuffer();
+            sb = new StringBuffer();
             String line = "";
-            while(null != (line = br.readLine())){
+            while (null != (line = br.readLine())) {
                 sb.append(line);
             }
-            obj = JSONObject.toJavaObject((JSON) JSONObject.parse(sb.toString()), clazz);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sb == null ? "" : sb.toString();
+    }
+
+    public static String outputFileByJSON(JSONObject jsonObject){
+        String fileName = UUID.randomUUID().toString();
+        String json = jsonObject.toJSONString();
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("./"+fileName));
+            bw.write(json);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return obj;
+        return fileName;
+    }
+
+
+    public static String outputFileByListJSON(List<JSONObject> jsonObject){
+        String fileName = UUID.randomUUID().toString();
+        StringBuffer json = new StringBuffer();
+        for (JSONObject str : jsonObject) {
+            json.append(str.toJSONString());
+        }
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("./"+fileName+".js"));
+            bw.write(json.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileName;
     }
 }

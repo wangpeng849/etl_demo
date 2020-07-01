@@ -21,13 +21,13 @@
 			"extractId":"",
 			"action":"sum",
 			"fields":[
-				"name"
+				"age"
 			]
 		},
 		{
 			"stepId":"s_id2",
 			"extractId":"",
-			"action":"sum2",
+			"action":"add",
 			"fields":[
 				"desc"
 			]
