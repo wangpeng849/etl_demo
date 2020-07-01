@@ -8,7 +8,7 @@
 				"username":"root",
 				"password":"root",
 				"table":"bend_info",
-				"fileds":[
+				"fields":[
 					"bend_id",
 					"bend_info_bending_len"
 				]
@@ -19,12 +19,18 @@
 		{
 			"stepId":"s_id",
 			"extractId":"",
-			"action":"sum"
+			"action":"sum",
+			"fields":[
+				"name"
+			]
 		},
 		{
 			"stepId":"s_id2",
 			"extractId":"",
-			"action":"sum2"
+			"action":"sum2",
+			"fields":[
+				"desc"
+			]
 		}
 	],
 	"loads":[
@@ -32,14 +38,15 @@
 			"lastOperatorId":"s_id",
 			"loadId":"load_id",
 			"datasource":{
-				"url":"jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+				"url":"jdbc:mysql://10.129.4.178:3307/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
 				"driverClassName":"com.mysql.cj.jdbc.Driver",
-				"username":"root",
-				"password":"root",
-				"table":"bend_info",
-				"fileds":[
-					"bend_id",
-					"bend_info_bending_len"
+				"username":"beacon",
+				"password":"beacon",
+				"table":"etl_demo",
+				"fields":[
+					"name",
+					"age",
+					"desc"
 				]
 			}
 		}
