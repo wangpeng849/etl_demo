@@ -10,7 +10,6 @@ import lombok.Data;
 @Data
 public class Loads {
     private String loadId;
-    private String transferId;
-    private String extractId;
+    private String lastOperatorId;
     private ETLDataSource dataSource;
 }

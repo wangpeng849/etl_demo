@@ -1,5 +1,6 @@
 package com.example.etl_demo.json;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -21,8 +22,7 @@ public class ETLDemo {
         while(null != (line = br.readLine())){
             sb.append(line);
         }
-        JSONObject jsonObject = (JSONObject) JSONObject.parse(sb.toString());
-        ETL etl = jsonObject.toJavaObject(ETL.class);
+        ETL etl = JSONObject.toJavaObject((JSON) JSONObject.parse(sb.toString()), ETL.class);
         System.out.println(etl);
     }
 }
