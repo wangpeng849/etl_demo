@@ -2,6 +2,7 @@ package com.example.etl_demo.controller;
 
 import com.example.etl_demo.json.ETL;
 import com.example.etl_demo.json.Loads;
+import com.example.etl_demo.json.Transfers;
 import com.example.etl_demo.utils.JsonUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -58,7 +59,16 @@ public class ETLController {
     }
 
     private void gotoTransfer(String lastOperatorId) {
-        if(lastOperatorId.startsWith("s")) gotoExtract(lastOperatorId);
+        if(!lastOperatorId.startsWith("s")) gotoExtract(lastOperatorId);
+        for (Transfers transfer : etl.getTransfers()) {
+            if(transfer.getStepId().equals(lastOperatorId)){
+                executorTransfer(transfer);
+            }
+        }
+    }
+
+    private void executorTransfer(Transfers transfer) {
+
     }
 
 
