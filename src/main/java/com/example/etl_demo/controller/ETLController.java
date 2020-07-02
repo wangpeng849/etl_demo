@@ -11,6 +11,7 @@ import com.rabbitmq.tools.json.JSONUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -45,8 +46,8 @@ public class ETLController {
 
     @GetMapping("transfer")
     @ApiOperation("转换数据")
-    public Object transfer() {
-        return gotoTransfer("s_1232");
+    public Object transfer(@RequestParam String fileName) {
+        return gotoTransfer(fileName);
 //        return etl.getTransfers();
     }
 
@@ -66,52 +67,62 @@ public class ETLController {
 
     }
 
-    private List<JSONObject> gotoTransfer(String lastOperatorId) {
+    private String gotoTransfer(String lastOperatorId) {
         if (!lastOperatorId.startsWith("s")) gotoExtract(lastOperatorId);
-        List<JSONObject> res = null;
+        String res = lastOperatorId;
         for (Transfers transfer : etl.getTransfers()) {
 //            if(transfer.getStepId().equals(lastOperatorId)){
-            res = executorTransfer(transfer);
+            res = executorTransfer(transfer, res);
 //           }
         }
         return res;
     }
 
-    private List<JSONObject> executorTransfer(Transfers transfer) {
+    private String executorTransfer(Transfers transfer, String fileId) {
         String extractId = transfer.getExtractId();
-        String str = JsonUtils.convertFileToStr("./676415bf-4157-44ad-952c-0e2f6a852394.js");
+        String str = JsonUtils.convertFileToStr("./" + fileId + ".js");
         List<JSONObject> data = (List<JSONObject>) JSONObject.parse(str);
         String action = transfer.getAction();
-        Integer count = 0;
-        int index = 0;
-        for (JSONObject datum : data) {
-            System.out.println(index);
-            if ("sum".equals(action)) {
-                for (Map.Entry<String, Object> entry : datum.entrySet()) {
-                    if (entry.getKey().equals(transfer.getFields().get(0))) {
-                        count += (int) entry.getValue();
-                    }
-                }
-            }
-            if("add".equals(action)){
-                Map<String, Object> map = Maps.newHashMap();
-                for (Map.Entry<String, Object> entry : datum.entrySet()) {
-                    if (entry.getKey().equals(transfer.getFields().get(0))) {
-                        map.put(entry.getKey(),entry.getValue()+"xx");
-                    }else{
-                        map.put(entry.getKey(),entry.getValue());
-                    }
-                }
-                data.set(index,new JSONObject(map));
-            }
-            index++;
+        if ("sum".equals(action)) {
+            return sumAction(data, transfer);
         }
-        Map<String, Object> map = Maps.newHashMap();
-        map.put("count",count);
-        data.add(0, new JSONObject(map));
-        String s = JsonUtils.outputFileByListJSON(data);
-        return data;
+        if ("add".equals(action)) {
+            return addAction(data, transfer);
+        }
+        return "";
     }
 
+    private String sumAction(List<JSONObject> data, Transfers transfer) {
+        int count = 0;
+        for (JSONObject datum : data) {
+            for (Map.Entry<String, Object> entry : datum.entrySet()) {
+                if (entry.getKey().equals(transfer.getFields().get(0))) {
+                    count += (int) entry.getValue();
+                }
+            }
+        }
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("count", count);
+        data.add(0, new JSONObject(map));
+        return JsonUtils.outputFileByListJSON(data);
+    }
+
+
+    private String addAction(List<JSONObject> data, Transfers transfer) {
+        int index = 0;
+        for (JSONObject datum : data) {
+            Map<String, Object> map = Maps.newHashMap();
+            for (Map.Entry<String, Object> entry : datum.entrySet()) {
+                if (entry.getKey().equals(transfer.getFields().get(0))) {
+                    map.put(entry.getKey(), entry.getValue() + "xx");
+                } else {
+                    map.put(entry.getKey(), entry.getValue());
+                }
+            }
+            data.set(index, new JSONObject(map));
+            index++;
+        }
+        return JsonUtils.outputFileByListJSON(data);
+    }
 
 }

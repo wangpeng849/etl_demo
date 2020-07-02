@@ -35,11 +35,11 @@ public class JsonUtils {
         return sb == null ? "" : sb.toString();
     }
 
-    public static String outputFileByJSON(JSONObject jsonObject){
+    public static String outputFileByJSON(JSONObject jsonObject) {
         String fileName = UUID.randomUUID().toString();
         String json = jsonObject.toJSONString();
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./"+fileName));
+            BufferedWriter bw = new BufferedWriter(new FileWriter("./" + fileName));
             bw.write(json);
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,17 +48,34 @@ public class JsonUtils {
     }
 
 
-    public static String outputFileByListJSON(List<JSONObject> jsonObject){
+    public static String outputFileByListJSON(List<JSONObject> jsonObject) {
         String fileName = UUID.randomUUID().toString();
-        StringBuffer json = new StringBuffer();
-        for (JSONObject str : jsonObject) {
-            json.append(str.toJSONString());
-        }
+        String toJson = JSONObject.toJSON(jsonObject).toString();
+        BufferedWriter bw = null;
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./"+fileName+".js"));
-            bw.write(json.toString());
+            //一次写不完
+            bw = new BufferedWriter(new FileWriter("./" + fileName + ".js"));
+            int start = 0;
+            int end = 512;
+            while (true) {
+                if (end >= toJson.length()) {
+                    String writeContent = toJson.substring(start);
+                    bw.write(writeContent);
+                    break;
+                }
+                String writeContent = toJson.substring(start, end);
+                bw.write(writeContent);
+                start = end;
+                end += 512;
+            }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return fileName;
     }
