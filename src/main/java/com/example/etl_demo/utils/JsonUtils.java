@@ -3,8 +3,9 @@ package com.example.etl_demo.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.example.etl_demo.json.ETL;
+import lombok.Cleanup;
 
+import javax.annotation.WillClose;
 import java.io.*;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,12 @@ public class JsonUtils {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return sb == null ? "" : sb.toString();
     }
@@ -39,11 +46,18 @@ public class JsonUtils {
     public static String outputFileByJSON(JSONObject jsonObject) {
         String fileName = UUID.randomUUID().toString();
         String json = jsonObject.toJSONString();
+        BufferedWriter bw = null;
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./" + fileName));
+            bw = new BufferedWriter(new FileWriter("./" + fileName));
             bw.write(json);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return fileName;
     }
@@ -54,7 +68,7 @@ public class JsonUtils {
         BufferedWriter bw = null;
         try {
             //一次写不完
-            bw = new BufferedWriter(new FileWriter("./" + stepId + ".js"));
+            bw = new BufferedWriter(new FileWriter("./" + stepId + ".json"));
             int start = 0;
             int end = 512;
             while (true) {
@@ -80,12 +94,13 @@ public class JsonUtils {
         return stepId;
     }
 
+
     public static String outputFileByJSONArray(JSONArray array, String stepId) {
         String json = array.toJSONString();
         BufferedWriter bw = null;
         try {
             //一次写不完
-            bw = new BufferedWriter(new FileWriter("./" + stepId + ".js"));
+            bw = new BufferedWriter(new FileWriter("./" + stepId + ".json"));
             int start = 0;
             int end = 512;
             while (true) {

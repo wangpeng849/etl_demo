@@ -27,13 +27,13 @@ import java.util.*;
 @Api(tags = "ETL")
 public class ETLController {
 
-    ETL etl = (ETL) JsonUtils.jsonTobObject("./etl.js", ETL.class);
+    ETL etl = (ETL) JsonUtils.jsonTobObject("./etl.json", ETL.class);
 
 
     @GetMapping("test")
     @ApiOperation("测试")
     public Object test() {
-        return JsonUtils.jsonTobObject("./etl.js", ETL.class);
+        return JsonUtils.jsonTobObject("./etl.json", ETL.class);
     }
 
 
@@ -84,8 +84,10 @@ public class ETLController {
     }
 
     private String executorTransfer(Transfers transfer, String lastOperatorId) {
-        String str = JsonUtils.convertFileToStr("./" + lastOperatorId + ".js");
+        String str = JsonUtils.convertFileToStr("./" + lastOperatorId + ".json");
         List<JSONObject> data = (List<JSONObject>) JSONObject.parse(str);
+
+
         String action = transfer.getAction();
         if ("sum".equals(action)) {
             return sumAction(data, transfer);
@@ -137,7 +139,7 @@ public class ETLController {
     private String joinAction(Transfers transfer) {
         JSONArray array = new JSONArray();
         for (String field : transfer.getFields()) {
-            String s = JsonUtils.convertFileToStr("./" + field + ".js");
+            String s = JsonUtils.convertFileToStr("./" + field + ".json");
             array.addAll((Collection<? extends Object>) JSONArray.parse(s));
         }
         JsonUtils.outputFileByJSONArray(array,transfer.getStepId());
