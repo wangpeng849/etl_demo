@@ -19,11 +19,11 @@ public class JsonUtils {
         return JSONObject.toJavaObject((JSON) JSONObject.parse(convertFileToStr(filePath)), clazz);
     }
 
-    public static String convertFileToStr(String filePath) {
+    public static String convertFileToStr(String lastFilePath) {
         BufferedReader br = null;
         StringBuffer sb = null;
         try {
-            br = new BufferedReader(new FileReader(filePath));
+            br = new BufferedReader(new FileReader(lastFilePath));
             sb = new StringBuffer();
             String line = "";
             while (null != (line = br.readLine())) {
@@ -48,13 +48,12 @@ public class JsonUtils {
     }
 
 
-    public static String outputFileByListJSON(List<JSONObject> jsonObject) {
-        String fileName = UUID.randomUUID().toString();
+    public static String outputFileByListJSON(List<JSONObject> jsonObject,String stepId) {
         String toJson = JSONObject.toJSON(jsonObject).toString();
         BufferedWriter bw = null;
         try {
             //一次写不完
-            bw = new BufferedWriter(new FileWriter("./" + fileName + ".js"));
+            bw = new BufferedWriter(new FileWriter("./" + stepId + ".js"));
             int start = 0;
             int end = 512;
             while (true) {
@@ -77,6 +76,6 @@ public class JsonUtils {
                 e.printStackTrace();
             }
         }
-        return fileName;
+        return stepId;
     }
 }

@@ -13,6 +13,7 @@ import java.util.List;
 public class Transfers {
     private String stepId;
     private String extractId;
+    private String nextId;
     private String action;
     private List<String> fields;
 }

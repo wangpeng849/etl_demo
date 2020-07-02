@@ -1,7 +1,8 @@
 {
 	"extracts":[
 		{	
-			"extractId":"e_id",
+			"extractId":"676415bf-4157-44ad-952c-0e2f6a852394",
+			"nextOperatorId":"0f41013c-c785-4860-b31c-5e0b7e8a3b76",
 			"datasource":{
 				"url":"jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
 				"driverClassName":"com.mysql.cj.jdbc.Driver",
@@ -17,16 +18,16 @@
 	],
 	"transfers":[
 		{
-			"stepId":"s_id",
-			"extractId":"",
+			"stepId":"0f41013c-c785-4860-b31c-5e0b7e8a3b76",
+			"nextId":"29642e9e-5bce-4295-bb79-5088f3e41f49",
 			"action":"sum",
 			"fields":[
 				"age"
 			]
 		},
 		{
-			"stepId":"s_id2",
-			"extractId":"",
+			"stepId":"29642e9e-5bce-4295-bb79-5088f3e41f49",
+			"nextId":"load",
 			"action":"add",
 			"fields":[
 				"desc"
@@ -35,8 +36,8 @@
 	],
 	"loads":[
 		{
-			"lastOperatorId":"s_id",
-			"loadId":"load_id",
+			"lastOperatorId":"29642e9e-5bce-4295-bb79-5088f3e41f49",
+			"loadId":"load",
 			"datasource":{
 				"url":"jdbc:mysql://10.129.4.178:3307/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
 				"driverClassName":"com.mysql.cj.jdbc.Driver",

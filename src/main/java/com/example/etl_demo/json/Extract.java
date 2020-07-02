@@ -10,5 +10,6 @@ import lombok.Data;
 @Data
 public class Extract {
     private String extractId;
+    private String nextOperatorId;
     private ETLDataSource dataSource;
 }

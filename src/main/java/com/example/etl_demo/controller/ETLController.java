@@ -3,6 +3,7 @@ package com.example.etl_demo.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.etl_demo.json.ETL;
+import com.example.etl_demo.json.Extract;
 import com.example.etl_demo.json.Loads;
 import com.example.etl_demo.json.Transfers;
 import com.example.etl_demo.utils.JsonUtils;
@@ -14,10 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author wangp
@@ -46,9 +44,12 @@ public class ETLController {
 
     @GetMapping("transfer")
     @ApiOperation("转换数据")
-    public Object transfer(@RequestParam String fileName) {
-        return gotoTransfer(fileName);
-//        return etl.getTransfers();
+    public Object transfer() {
+        List<Extract> extracts = etl.getExtracts();
+        for (Extract extract : extracts) {
+            gotoTransfer(extract.getNextOperatorId(), extract.getExtractId());
+        }
+        return etl.getTransfers();
     }
 
 
@@ -58,7 +59,8 @@ public class ETLController {
         List<Loads> loads = etl.getLoads();
         for (int i = 0; i < loads.size(); i++) {
             String lastOperatorId = loads.get(i).getLastOperatorId();
-            gotoTransfer(lastOperatorId);
+            //TODO
+            gotoTransfer("",lastOperatorId);
         }
         return loads;
     }
@@ -67,20 +69,22 @@ public class ETLController {
 
     }
 
-    private String gotoTransfer(String lastOperatorId) {
-        if (!lastOperatorId.startsWith("s")) gotoExtract(lastOperatorId);
-        String res = lastOperatorId;
-        for (Transfers transfer : etl.getTransfers()) {
-//            if(transfer.getStepId().equals(lastOperatorId)){
-            res = executorTransfer(transfer, res);
-//           }
+    private String gotoTransfer(String curOperatorId, String lastOperatorId) {
+        if (!curOperatorId.startsWith("s")) gotoExtract(curOperatorId);
+        while (!curOperatorId.equals("load")) {
+            for (Transfers transfer : etl.getTransfers()) {
+                if (transfer.getStepId().equals(curOperatorId)) {
+                    curOperatorId = executorTransfer(transfer, lastOperatorId);
+                    lastOperatorId = transfer.getStepId();
+                }
+            }
         }
-        return res;
+        return curOperatorId;
     }
 
-    private String executorTransfer(Transfers transfer, String fileId) {
-        String extractId = transfer.getExtractId();
-        String str = JsonUtils.convertFileToStr("./" + fileId + ".js");
+    private String executorTransfer(Transfers transfer, String lastOperatorId) {
+//        String extractId = transfer.getExtractId();
+        String str = JsonUtils.convertFileToStr("./" + lastOperatorId + ".js");
         List<JSONObject> data = (List<JSONObject>) JSONObject.parse(str);
         String action = transfer.getAction();
         if ("sum".equals(action)) {
@@ -104,7 +108,8 @@ public class ETLController {
         Map<String, Object> map = Maps.newHashMap();
         map.put("count", count);
         data.add(0, new JSONObject(map));
-        return JsonUtils.outputFileByListJSON(data);
+        JsonUtils.outputFileByListJSON(data, transfer.getStepId());
+        return transfer.getNextId();
     }
 
 
@@ -122,7 +127,11 @@ public class ETLController {
             data.set(index, new JSONObject(map));
             index++;
         }
-        return JsonUtils.outputFileByListJSON(data);
+        JsonUtils.outputFileByListJSON(data, transfer.getStepId());
+        return transfer.getNextId();
     }
 
+    public static void main(String[] args) {
+        System.out.println(UUID.randomUUID().toString());
+    }
 }
