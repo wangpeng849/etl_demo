@@ -1,6 +1,7 @@
 package com.example.etl_demo.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.etl_demo.json.ETL;
 
@@ -48,7 +49,7 @@ public class JsonUtils {
     }
 
 
-    public static String outputFileByListJSON(List<JSONObject> jsonObject,String stepId) {
+    public static String outputFileByListJSON(List<JSONObject> jsonObject, String stepId) {
         String toJson = JSONObject.toJSON(jsonObject).toString();
         BufferedWriter bw = null;
         try {
@@ -63,6 +64,37 @@ public class JsonUtils {
                     break;
                 }
                 String writeContent = toJson.substring(start, end);
+                bw.write(writeContent);
+                start = end;
+                end += 512;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return stepId;
+    }
+
+    public static String outputFileByJSONArray(JSONArray array, String stepId) {
+        String json = array.toJSONString();
+        BufferedWriter bw = null;
+        try {
+            //一次写不完
+            bw = new BufferedWriter(new FileWriter("./" + stepId + ".js"));
+            int start = 0;
+            int end = 512;
+            while (true) {
+                if (end >= json.length()) {
+                    String writeContent = json.substring(start);
+                    bw.write(writeContent);
+                    break;
+                }
+                String writeContent = json.substring(start, end);
                 bw.write(writeContent);
                 start = end;
                 end += 512;

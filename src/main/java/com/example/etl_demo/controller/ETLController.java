@@ -1,6 +1,7 @@
 package com.example.etl_demo.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.etl_demo.json.ETL;
 import com.example.etl_demo.json.Extract;
@@ -83,7 +84,6 @@ public class ETLController {
     }
 
     private String executorTransfer(Transfers transfer, String lastOperatorId) {
-//        String extractId = transfer.getExtractId();
         String str = JsonUtils.convertFileToStr("./" + lastOperatorId + ".js");
         List<JSONObject> data = (List<JSONObject>) JSONObject.parse(str);
         String action = transfer.getAction();
@@ -92,6 +92,9 @@ public class ETLController {
         }
         if ("add".equals(action)) {
             return addAction(data, transfer);
+        }
+        if("join".equals(action)){
+            return joinAction(transfer);
         }
         return "";
     }
@@ -128,6 +131,16 @@ public class ETLController {
             index++;
         }
         JsonUtils.outputFileByListJSON(data, transfer.getStepId());
+        return transfer.getNextId();
+    }
+
+    private String joinAction(Transfers transfer) {
+        JSONArray array = new JSONArray();
+        for (String field : transfer.getFields()) {
+            String s = JsonUtils.convertFileToStr("./" + field + ".js");
+            array.addAll((Collection<? extends Object>) JSONArray.parse(s));
+        }
+        JsonUtils.outputFileByJSONArray(array,transfer.getStepId());
         return transfer.getNextId();
     }
 

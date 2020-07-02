@@ -27,10 +27,19 @@
 		},
 		{
 			"stepId":"29642e9e-5bce-4295-bb79-5088f3e41f49",
-			"nextId":"load",
+			"nextId":"39642e9e-5bce-4295-bb79-5088f3e41f49",
 			"action":"add",
 			"fields":[
 				"desc"
+			]
+		},
+		{
+			"stepId":"39642e9e-5bce-4295-bb79-5088f3e41f49",
+			"nextId":"load",
+			"action":"join",
+			"fields":[
+				"29642e9e-5bce-4295-bb79-5088f3e41f49",
+				"0f41013c-c785-4860-b31c-5e0b7e8a3b76"
 			]
 		}
 	],
