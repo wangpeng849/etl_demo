@@ -1,17 +1,14 @@
 package com.example.etl_demo.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.etl_demo.json.*;
 import com.example.etl_demo.utils.JsonUtils;
 import com.google.common.collect.Maps;
-import com.rabbitmq.tools.json.JSONUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.*;
@@ -39,7 +36,47 @@ public class ETLController {
     @GetMapping("extract")
     @ApiOperation("抽取数据")
     public Object extract() {
+        List<Extract> extracts = etl.getExtracts();
+        for (Extract extract : extracts) {
+            String extractId = extract.getExtractId();
+            Connection connection = getConnection(extract.getDataSource());
+            extractOutMysql(extract.getDataSource(), extractId, connection,extract.getCount());
+        }
         return etl.getExtracts();
+    }
+
+    private void extractOutMysql(ETLDataSource dataSource, String extractId, Connection connection,Integer count) {
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try {
+            String sql = generateExtractSQL(dataSource);
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            List<String> fields = dataSource.getFields();
+            List<Map<String,Object>> resList = new ArrayList<>();
+            while (resultSet.next() && resList.size() < count) {
+                int size = 0;
+                Map<String,Object> res = new HashMap<>();
+                while(size != fields.size()){
+                    res.put(fields.get(size),resultSet.getObject(size+1));
+                    size++;
+                }
+                resList.add(res);
+            }
+            JsonUtils.outputFileByJSONArray((JSONArray) JSONArray.toJSON(resList),extractId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String generateExtractSQL(ETLDataSource dataSource) {
+        List<String> fields = dataSource.getFields();
+        String fieldStr = "";
+        for (String field : fields) {
+            fieldStr += "`" + field + "`,";
+        }
+        fieldStr = fieldStr.substring(0, fieldStr.length() - 1);
+        return  "SELECT "+ fieldStr + " from " + dataSource.getTable();
     }
 
     @GetMapping("transfer")
@@ -68,7 +105,7 @@ public class ETLController {
     private void loadInMysql(ETLDataSource dataSource, String lastOperatorId, Connection connection) {
         JSONArray json = (JSONArray) JSONArray.parse(JsonUtils.convertFileToStr("./" + lastOperatorId + ".json"));
         List<String> fields = dataSource.getFields();
-        String sql = generateSQL(dataSource, fields);
+        String sql = generateLoadSQL(dataSource, fields);
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             for (Object o : json) {
@@ -81,9 +118,9 @@ public class ETLController {
                     flag++;
                     ps.setString(i + 1, obj.toString());
                 }
-                if(flag != 0) {
-                    while(flag < fields.size()){
-                        ps.setString(flag+1,"");
+                if (flag != 0) {
+                    while (flag < fields.size()) {
+                        ps.setString(flag + 1, "");
                     }
                     ps.executeUpdate();
                 }
@@ -93,7 +130,7 @@ public class ETLController {
         }
     }
 
-    private String generateSQL(ETLDataSource dataSource, List<String> fields) {
+    private String generateLoadSQL(ETLDataSource dataSource, List<String> fields) {
         StringBuffer sql = new StringBuffer("insert into " + dataSource.getTable() + " (");
         for (String field : fields) {
             sql.append("`" + field + "`,");
@@ -160,14 +197,13 @@ public class ETLController {
         return transfer.getNextId();
     }
 
-
     private String addAction(List<JSONObject> data, Transfers transfer) {
         int index = 0;
         for (JSONObject datum : data) {
             Map<String, Object> map = Maps.newHashMap();
             for (Map.Entry<String, Object> entry : datum.entrySet()) {
                 if (entry.getKey().equals(transfer.getFields().get(0))) {
-                    map.put(entry.getKey(), entry.getValue() + "xx");
+                    map.put(entry.getKey(), entry.getValue() + transfer.getAddStr());
                 } else {
                     map.put(entry.getKey(), entry.getValue());
                 }

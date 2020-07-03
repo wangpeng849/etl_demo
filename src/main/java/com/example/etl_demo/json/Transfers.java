@@ -16,4 +16,5 @@ public class Transfers {
     private String nextId;
     private String action;
     private List<String> fields;
+    private String addStr;
 }

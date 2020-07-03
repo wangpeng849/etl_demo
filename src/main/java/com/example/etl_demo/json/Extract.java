@@ -11,5 +11,6 @@ import lombok.Data;
 public class Extract {
     private String extractId;
     private String nextOperatorId;
+    private Integer count;
     private ETLDataSource dataSource;
 }
