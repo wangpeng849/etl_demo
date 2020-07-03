@@ -48,11 +48,11 @@
       "lastOperatorId": "29642e9e-5bce-4295-bb79-5088f3e41f49",
       "loadId": "load",
       "datasource": {
-        "url": "jdbc:mysql://10.129.4.178:3307/demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+        "url": "jdbc:mysql://10.129.4.178:3307/etl_demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
         "driverClassName": "com.mysql.cj.jdbc.Driver",
         "username": "beacon",
         "password": "beacon",
-        "table": "etl_demo",
+        "table": "tb_user_copy",
         "fields": [
           "name",
           "age",

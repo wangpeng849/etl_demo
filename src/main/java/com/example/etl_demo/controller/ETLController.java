@@ -3,19 +3,18 @@ package com.example.etl_demo.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.example.etl_demo.json.ETL;
-import com.example.etl_demo.json.Extract;
-import com.example.etl_demo.json.Loads;
-import com.example.etl_demo.json.Transfers;
+import com.example.etl_demo.json.*;
 import com.example.etl_demo.utils.JsonUtils;
 import com.google.common.collect.Maps;
 import com.rabbitmq.tools.json.JSONUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -58,12 +57,56 @@ public class ETLController {
     @ApiOperation("加载数据")
     public Object load() {
         List<Loads> loads = etl.getLoads();
-        for (int i = 0; i < loads.size(); i++) {
-            String lastOperatorId = loads.get(i).getLastOperatorId();
-            //TODO
-            gotoTransfer("",lastOperatorId);
+        for (Loads load : loads) {
+            String lastOperatorId = load.getLastOperatorId();
+            Connection connection = connectionMysql(load);
+            loadInMysql(load.getDataSource(), lastOperatorId, connection);
         }
         return loads;
+    }
+
+    private void loadInMysql(ETLDataSource dataSource, String lastOperatorId, Connection connection) {
+        JSONArray json = (JSONArray) JSONArray.parse(JsonUtils.convertFileToStr("./" + lastOperatorId + ".json"));
+        List<String> fields = dataSource.getFields();
+        String sql = generateSQL(dataSource, fields);
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            for (Object o : json) {
+                //数据库不存在数据时
+                int flag = 0;
+                JSONObject jsonObject = (JSONObject) o;
+                for (int i = 0; i < fields.size(); i++) {
+                    Object obj = jsonObject.get(fields.get(i));
+                    if (obj == null) break;
+                    flag++;
+                    ps.setString(i + 1, obj.toString());
+                }
+                if(flag != 0) {
+                    while(flag < fields.size()){
+                        ps.setString(flag+1,"");
+                    }
+                    ps.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String generateSQL(ETLDataSource dataSource, List<String> fields) {
+        StringBuffer sql = new StringBuffer("insert into " + dataSource.getTable() + " (");
+        for (String field : fields) {
+            sql.append("`" + field + "`,");
+        }
+        String sqlStr = sql.substring(0, sql.length() - 1);
+        sqlStr += ") ";
+        String valueStr = "values (";
+        for (int i = 0; i < fields.size(); i++) {
+            valueStr += "? ,";
+        }
+        valueStr = valueStr.substring(0, valueStr.length() - 1);
+        valueStr += ")";
+        return sqlStr + valueStr;
     }
 
     private void gotoExtract(String lastOperatorId) {
@@ -95,7 +138,7 @@ public class ETLController {
         if ("add".equals(action)) {
             return addAction(data, transfer);
         }
-        if("join".equals(action)){
+        if ("join".equals(action)) {
             return joinAction(transfer);
         }
         return "";
@@ -142,8 +185,25 @@ public class ETLController {
             String s = JsonUtils.convertFileToStr("./" + field + ".json");
             array.addAll((Collection<? extends Object>) JSONArray.parse(s));
         }
-        JsonUtils.outputFileByJSONArray(array,transfer.getStepId());
+        JsonUtils.outputFileByJSONArray(array, transfer.getStepId());
         return transfer.getNextId();
+    }
+
+
+    private Connection connectionMysql(Loads loads) {
+        Connection connection = getConnection(loads.getDataSource());
+        Assert.notNull(connection, "连接失败！");
+        return connection;
+    }
+
+    private Connection getConnection(ETLDataSource dataSource) {
+        try {
+            Class.forName(dataSource.getDriverClassName());
+            return DriverManager.getConnection(dataSource.getUrl(), dataSource.getUsername(), dataSource.getPassword());
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static void main(String[] args) {
