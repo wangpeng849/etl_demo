@@ -1,0 +1,3 @@
+logging:
+  file:
+    path: classpath://log4j.properties
